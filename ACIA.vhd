@@ -44,7 +44,11 @@ component ACIA_RX
     RXFULL    : buffer std_logic;
     FRAME     : out    std_logic;
     OVERFLOW  : out    std_logic;
-    RXTAKEN   : in     std_logic
+    RXTAKEN   : in     std_logic;
+    PARITY    : out    std_logic;
+    R_PMC     : in     std_logic_vector(1 downto 0);
+    R_PME     : in     std_logic;
+    R_SBN     : in     std_logic
     );
 end component;
 
@@ -56,6 +60,9 @@ component ACIA_TX is
     CTSB      : in     std_logic;
     TX        : buffer std_logic;
     TXDATA    : in     std_logic_vector(7 downto 0);
+    R_PME     : in     std_logic;
+    R_PMC     : in     std_logic_vector(1 downto 0);
+    R_SBN     : in     std_logic;
     TXLATCH   : in     std_logic;
     TXFULL    : out    std_logic
     );
@@ -70,22 +77,23 @@ component ACIA_BRGEN is
     );
 end component;
 
-signal BCLK:     std_logic := '0';
 signal RXDATA:   std_logic_vector(7 downto 0) := "00000000";
+signal TXDATA:   std_logic_vector(7 downto 0) := "00000000";
+signal R_SBR:    std_logic_vector(3 downto 0) := "0000";
+signal R_WDL:    std_logic_vector(1 downto 0) := "00";
+signal R_PMC:    std_logic_vector(1 downto 0) := "00";
+signal R_TIC:    std_logic_vector(1 downto 0) := "00";
+signal BCLK:     std_logic := '0';
 signal RXFULL:   std_logic := '0';
 signal FRAME:    std_logic := '0';
 signal OVERFLOW: std_logic := '0';
+signal PARITY:   std_logic := '0';
 signal RXTAKEN:  std_logic := '0';
-signal TXDATA:   std_logic_vector(7 downto 0) := "00000000";
 signal TXLATCH:  std_logic := '0';
 signal TXFULL:   std_logic := '0';
 signal R_SBN:    std_logic := '0';
-signal R_WDL:    std_logic_vector(1 downto 0) := "00";
-signal R_SBR:    std_logic_vector(3 downto 0) := "0000";
-signal R_PMC:    std_logic_vector(1 downto 0) := "00";
 signal R_PME:    std_logic := '0';
 signal R_REM:    std_logic := '0';
-signal R_TIC:    std_logic_vector(1 downto 0) := "00";
 signal R_IRD:    std_logic := '0';
 signal R_DTR:    std_logic := '0';
 signal R_RCS:    std_logic := '0';
@@ -101,7 +109,11 @@ C_RX : ACIA_RX port map (
   RXFULL => RXFULL,
   FRAME => FRAME,
   OVERFLOW => OVERFLOW,
-  RXTAKEN => RXTAKEN
+  RXTAKEN => RXTAKEN,
+  PARITY => PARITY,
+  R_PMC => R_PMC,
+  R_PME => R_PME,
+  R_SBN => R_SBN
 );
 
 C_TX : ACIA_TX port map (
@@ -111,8 +123,11 @@ C_TX : ACIA_TX port map (
   CTSB => CTSB,
   TX => TXD,
   TXDATA => TXDATA,
+  R_PME => R_PME,
+  R_PMC => R_PMC,
   TXLATCH => TXLATCH,
-  TXFULL => TXFULL
+  TXFULL => TXFULL,
+  R_SBN => R_SBN
 );
 
 C_BRGEN : ACIA_BRGEN port map (
@@ -140,7 +155,7 @@ begin
       DATAOUT(3) <= RXFULL;
       DATAOUT(2) <= OVERFLOW;
       DATAOUT(1) <= FRAME;
-      DATAOUT(0) <= '0';
+      DATAOUT(0) <= PARITY;
     elsif (rs = "10") then
       DATAOUT(7 downto 6) <= R_PMC;
       DATAOUT(5) <= R_PME;
@@ -176,7 +191,7 @@ begin
         TXDATA <= DATAIN;
         TXLATCH <= '1';
       elsif (rs = "01") then
-       --- RESET ---
+        --- RESET ---
       elsif (rs = "10") then
         R_PMC <= DATAIN(7 downto 6);
         R_PME <= DATAIN(5);
@@ -197,10 +212,9 @@ begin
       end if;
     else
       TXLATCH <= '0';
-   end if;
+    end if;
   end if;
 end process;
 
 IRQn <= '0' WHEN (((TXFULL = '0' AND R_TIC = "01") OR (RXFULL = '1' AND R_IRD = '0')) AND R_DTR = '1') else '1';
 end rtl;
-
