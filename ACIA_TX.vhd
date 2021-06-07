@@ -1,7 +1,7 @@
-library ieee; 
-use ieee.std_logic_1164.all; 
-use ieee.numeric_std.all; 
-use ieee.std_logic_unsigned.all; 
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.std_logic_unsigned.all;
 
 entity ACIA_TX is
   port (
@@ -81,7 +81,7 @@ begin
         else
           r_clk <= r_clk + 1;
         end if;
-      
+
       when state_Data =>
         TX <= r_tx_shiftreg (0);
         if r_clk < 15 then

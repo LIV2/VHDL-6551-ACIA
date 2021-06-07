@@ -65,7 +65,7 @@ begin
         else
           r_clkdiv <= r_clkdiv + 1;
         end if;
-      
+
       when state_Data =>
           r_rxreceive <= '1';
         if r_clkdiv < 15 then

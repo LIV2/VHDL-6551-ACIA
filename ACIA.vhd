@@ -204,7 +204,7 @@ begin
       else
         RTSB <= '0';
       end if;
-      elsif (rs = "11") then 
+      elsif (rs = "11") then
         R_SBN <= DATAIN(7);
         R_WDL <= DATAIN(6 downto 5);
         R_RCS <= DATAIN(4);
