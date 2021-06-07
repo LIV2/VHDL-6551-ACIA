@@ -30,6 +30,8 @@ signal r_tx_parity   : std_logic;
 signal r_txdata      : std_logic_vector (7 downto 0) := "00000000";
 signal r_txready     : std_logic := '0';
 signal r_txtaken     : std_logic := '0';
+signal r_txready_s   : std_logic := '0';
+signal r_txtaken_s   : std_logic := '0';
 
 begin
 
@@ -39,12 +41,13 @@ begin
     r_txdata <= (others => '0');
     TXFULL <= '0';
   elsif rising_edge(PHI2) then
+    r_txtaken_s <= r_txtaken;
     if TXLATCH = '1' then
       r_txdata <= TXDATA;
       r_txready <= '1';
       TXFULL <= '1';
     else
-      if (r_txready = '1' and r_txtaken = '1') then
+      if (r_txready = '1' and r_txtaken_s = '1') then
         r_txready <= '0';
         TXFULL <= '0';
       end if;
@@ -61,12 +64,13 @@ begin
     r_txtaken <= '0';
     r_tx_parity <= '0';
   elsif rising_edge(BCLK) then
+    r_txready_s <= r_txready;
     case r_tx_fsm is
       when state_Idle =>
         TX <= '1';
         r_clk <= 0;
         r_tx_parity <= '0';
-        if r_txready = '1' and CTSB = '0' then
+        if r_txready_s = '1' and CTSB = '0' then
           r_tx_shiftreg <= r_TXDATA;
           r_tx_fsm <= state_Start;
           r_txtaken <= '1';
