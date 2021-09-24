@@ -142,7 +142,7 @@ proc_bus : process (RESET,PHI2,CS)
 begin
   if RESET = '0' then
     RXTAKEN <= '0';
-  elsif falling_edge(PHI2) then
+  elsif rising_edge(PHI2) then
     if (CS = '0' and RWN = '1') then
       if (rs = "00") then
         DATAOUT <= RXDATA;
